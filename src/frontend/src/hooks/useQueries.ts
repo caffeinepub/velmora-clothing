@@ -57,7 +57,18 @@ export function useIsAdmin() {
       try {
         return await actor.isCallerAdmin();
       } catch {
-        return false;
+        // User not registered yet — register them first, then check
+        try {
+          // Cast to any: _initializeAccessControlWithSecret is not in the typed interface
+          // but exists on the backend. Calling with "" registers the caller as a user
+          // (or admin if they provide the correct token).
+          await (
+            actor as unknown as Record<string, (arg: string) => Promise<void>>
+          )._initializeAccessControlWithSecret("");
+          return await actor.isCallerAdmin();
+        } catch {
+          return false;
+        }
       }
     },
     enabled: !isFetching,

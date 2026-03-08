@@ -1,5 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -11,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import {
   AlertCircle,
+  Key,
   Loader2,
   LogIn,
   LogOut,
@@ -25,6 +28,7 @@ import { toast } from "sonner";
 import { Category } from "../backend";
 import { DeleteConfirmDialog } from "../components/admin/DeleteConfirmDialog";
 import { ProductForm } from "../components/admin/ProductForm";
+import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useAddProduct,
@@ -46,7 +50,12 @@ export function AdminPage() {
   const { login, clear, identity, isLoggingIn, isInitializing } =
     useInternetIdentity();
   const { data: products = [], isLoading: productsLoading } = useProducts();
-  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const {
+    data: isAdmin,
+    isLoading: adminLoading,
+    refetch: refetchAdmin,
+  } = useIsAdmin();
+  const { actor } = useActor();
 
   const addProductMutation = useAddProduct();
   const updateProductMutation = useUpdateProduct();
@@ -55,6 +64,31 @@ export function AdminPage() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
+  const [adminToken, setAdminToken] = useState("");
+  const [isClaimingAdmin, setIsClaimingAdmin] = useState(false);
+
+  const handleClaimAdmin = async () => {
+    if (!actor) return;
+    setIsClaimingAdmin(true);
+    try {
+      await (
+        actor as unknown as Record<string, (arg: string) => Promise<void>>
+      )._initializeAccessControlWithSecret(adminToken);
+      await refetchAdmin();
+      const { data: newIsAdmin } = await refetchAdmin();
+      if (newIsAdmin) {
+        toast.success("Admin access granted! Welcome to the admin panel.");
+      } else {
+        toast.error(
+          "Invalid admin token. Please check the token and try again.",
+        );
+      }
+    } catch {
+      toast.error("Failed to claim admin access. Please try again.");
+    } finally {
+      setIsClaimingAdmin(false);
+    }
+  };
 
   const isLoggedIn = !!identity;
   const principalStr = identity?.getPrincipal().toString();
@@ -183,22 +217,79 @@ export function AdminPage() {
           </div>
         )}
 
-        {/* Not admin */}
+        {/* Not admin — show claim admin form */}
         {isLoggedIn && !adminLoading && !isAdmin && (
           <div
             data-ocid="admin.not_admin.panel"
-            className="text-center py-20 max-w-md mx-auto"
+            className="py-16 max-w-md mx-auto"
           >
-            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20 mx-auto mb-6">
-              <AlertCircle className="w-7 h-7 text-destructive" />
+            {/* Icon + heading */}
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20 mx-auto mb-5">
+                <AlertCircle className="w-7 h-7 text-destructive" />
+              </div>
+              <h2 className="font-serif text-2xl font-bold text-foreground mb-2">
+                Access Restricted
+              </h2>
+              <p className="font-sans text-sm text-foreground/50 leading-relaxed">
+                Your account doesn't have admin access yet. If you have the
+                admin token, enter it below to claim admin privileges.
+              </p>
             </div>
-            <h2 className="font-serif text-2xl font-bold text-foreground mb-3">
-              Access Restricted
-            </h2>
-            <p className="font-sans text-sm text-foreground/50 leading-relaxed">
-              Admin access only. Please login with an admin account to manage
-              products.
-            </p>
+
+            {/* Claim admin token form */}
+            <div className="border border-gold/20 bg-[oklch(0.1_0.01_70)] p-6 rounded-sm space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Key className="w-4 h-4 text-gold" />
+                <h3 className="font-display text-xs uppercase tracking-widest text-gold">
+                  Claim Admin Access
+                </h3>
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="admin-token"
+                  className="font-display text-[10px] uppercase tracking-widest text-foreground/50"
+                >
+                  Admin Token
+                </Label>
+                <Input
+                  id="admin-token"
+                  data-ocid="admin.claim.input"
+                  type="password"
+                  placeholder="Enter your admin token..."
+                  value={adminToken}
+                  onChange={(e) => setAdminToken(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void handleClaimAdmin();
+                  }}
+                  className="bg-background border-border text-foreground placeholder:text-foreground/30 rounded-sm font-sans text-sm h-10 focus-visible:ring-gold/30 focus-visible:border-gold/50"
+                />
+                <p className="font-sans text-[11px] text-foreground/30 leading-relaxed">
+                  The admin token is set by the platform. Contact your system
+                  administrator if you don't have it.
+                </p>
+              </div>
+
+              <Button
+                data-ocid="admin.claim.submit_button"
+                onClick={() => void handleClaimAdmin()}
+                disabled={isClaimingAdmin || !adminToken.trim()}
+                className="w-full bg-gold hover:bg-gold-bright text-black font-display font-bold text-xs uppercase tracking-widest rounded-none h-10 disabled:opacity-40"
+              >
+                {isClaimingAdmin ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    <Key className="w-3.5 h-3.5 mr-2" />
+                    Claim Admin Access
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         )}
 
