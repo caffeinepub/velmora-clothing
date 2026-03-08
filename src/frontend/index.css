@@ -1,0 +1,213 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   FONTS — Self-hosted from /assets/fonts/
+   ============================================================ */
+
+/* Playfair Display — serif display for headings */
+@font-face {
+  font-family: "Playfair Display";
+  src: url("/assets/fonts/PlayfairDisplay[wght].woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Playfair Display";
+  src: url("/assets/fonts/PlayfairDisplay-Italic[wght].woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* General Sans — clean modern sans for body */
+@font-face {
+  font-family: "General Sans";
+  src: url("/assets/fonts/GeneralSans[wght].woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Cabinet Grotesk — for UI labels/prices */
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/assets/fonts/CabinetGrotesk[wght].woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================================
+   DESIGN TOKENS — Velmora Premium Indian Menswear
+   Dark luxury theme: near-black base, gold/saffron accents
+   ============================================================ */
+
+@layer base {
+  :root {
+    --radius: 0.25rem;
+
+    /* Core palette — dark luxe */
+    --background: 0.1 0 0;
+    --foreground: 0.94 0.01 85;
+
+    --card: 0.13 0 0;
+    --card-foreground: 0.94 0.01 85;
+
+    --popover: 0.15 0.005 60;
+    --popover-foreground: 0.94 0.01 85;
+
+    /* Primary = gold/saffron */
+    --primary: 0.72 0.16 78;
+    --primary-foreground: 0.1 0 0;
+
+    /* Secondary = dark charcoal */
+    --secondary: 0.18 0 0;
+    --secondary-foreground: 0.88 0.01 85;
+
+    /* Muted — subtle text/bg */
+    --muted: 0.17 0 0;
+    --muted-foreground: 0.55 0.01 70;
+
+    /* Accent = rich saffron for highlights */
+    --accent: 0.68 0.18 65;
+    --accent-foreground: 0.1 0 0;
+
+    /* Destructive */
+    --destructive: 0.6 0.22 27;
+    --destructive-foreground: 0.98 0 0;
+
+    /* Borders */
+    --border: 0.22 0 0;
+    --input: 0.22 0 0;
+    --ring: 0.72 0.16 78;
+
+    /* Gold token — used directly */
+    --gold: 0.72 0.16 78;
+    --gold-dim: 0.58 0.12 75;
+    --gold-bright: 0.82 0.17 80;
+    --gold-surface: 0.14 0.03 70;
+
+    /* Charts */
+    --chart-1: 0.72 0.16 78;
+    --chart-2: 0.6 0.12 185;
+    --chart-3: 0.5 0.1 230;
+    --chart-4: 0.78 0.19 85;
+    --chart-5: 0.65 0.2 30;
+
+    /* Sidebar */
+    --sidebar: 0.12 0 0;
+    --sidebar-foreground: 0.94 0.01 85;
+    --sidebar-primary: 0.72 0.16 78;
+    --sidebar-primary-foreground: 0.1 0 0;
+    --sidebar-accent: 0.18 0 0;
+    --sidebar-accent-foreground: 0.94 0.01 85;
+    --sidebar-border: 0.22 0 0;
+    --sidebar-ring: 0.72 0.16 78;
+  }
+
+  /* Force dark mode as the theme */
+  html {
+    color-scheme: dark;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "General Sans", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Playfair Display", serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ============================================================
+   UTILITY CLASSES — Velmora brand-specific helpers
+   ============================================================ */
+
+@layer utilities {
+  /* Gold text gradient */
+  .text-gold-gradient {
+    background: linear-gradient(
+      135deg,
+      oklch(var(--gold-bright)) 0%,
+      oklch(var(--gold)) 50%,
+      oklch(var(--gold-dim)) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Shimmer animation for gold accents */
+  .gold-shimmer {
+    background: linear-gradient(
+      90deg,
+      oklch(var(--gold-dim)) 0%,
+      oklch(var(--gold-bright)) 50%,
+      oklch(var(--gold-dim)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  /* Noise texture overlay */
+  .noise-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.5;
+  }
+
+  /* Gold border glow */
+  .gold-glow {
+    box-shadow: 0 0 20px oklch(var(--gold) / 0.3), 0 0 40px oklch(var(--gold) / 0.1);
+  }
+
+  /* Product card hover lift */
+  .card-lift {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+  }
+  .card-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px oklch(0 0 0 / 0.6), 0 0 0 1px oklch(var(--gold) / 0.2);
+  }
+
+  /* Section divider */
+  .gold-divider {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      oklch(var(--gold) / 0.6) 30%,
+      oklch(var(--gold)) 50%,
+      oklch(var(--gold) / 0.6) 70%,
+      transparent 100%
+    );
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: oklch(var(--background)); }
+  ::-webkit-scrollbar-thumb { background: oklch(var(--border)); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: oklch(var(--gold-dim)); }
+}
